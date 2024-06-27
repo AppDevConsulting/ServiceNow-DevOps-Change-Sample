@@ -4,11 +4,11 @@ name: CICD GitHub workflow
 
 on: 
   workflow_dispatch:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-    types: [opened, synchronize, reopened]
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+  #   types: [opened, synchronize, reopened]
 
 jobs:
   build:
@@ -124,7 +124,7 @@ jobs:
         echo 'Processing JSON payload...'
         json_payload='{
           "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
-          "stageName": "Twistlock",
+          "stageName": "Twistlock Scan",
           "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}",
           "scanID": "001",
           "scannerName": "Twistlock",
@@ -171,7 +171,7 @@ jobs:
 
   registerPackage:
     name: 'Register Package'
-    needs: registerArtifact
+    needs: TwistlockScan
     runs-on: ubuntu-latest
     steps:
     - name: ServiceNow DevOps Register Package
@@ -215,4 +215,23 @@ jobs:
             # Devops Integration Token
             devops-integration-token: ${{ secrets.SN_DEVOPS_TOKEN }}
             # ServiceNow Instance URL
-            instance-url: ${{ secrets.SN_INSTANCE
+            instance-url: ${{ secrets.SN_INSTANCE_URL }}
+            # Orchestration Tool Id
+            tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+            # GitHub Context
+            context-github: ${{ toJSON(github) }}
+            # Display Name of the Job
+            job-name: 'ServiceNow DevOps Change'
+            change-request: '{"attributes":{"requested_by":{"name": "DevOps System"},"cmdb_ci":{"name": "ServiceNow Corpsite"},"assignment_group":{"name": "Change management"},"priority": "2","comments": "This is a sample pipeline script to be added in your change step","work_notes": "Update this to work_notes"}}'
+            # You can specify the requested_by attribute either with name or sys_id. Example: "requested_by":{"name": "Test User"} or "requested_by": "62826bf03710200044e0bfc8bcbe5df1"
+            # You can specify the assignment_group attribute either with name or sys_id. Example: "assignment_group":{"name": "Change Approval Team"} or "assignment_group": "5f721d93c0a8010e015533746de18bf9"
+            # start_date: Enter the planned start date
+            # end_date: Enter the planned end date
+          
+  deploy:
+    name: 'Deploy'
+    needs: change
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run deployment scripts
+      run: echo 'Deployment step in progress...'
