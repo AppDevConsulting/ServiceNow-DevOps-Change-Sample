@@ -125,7 +125,6 @@ jobs:
         json_payload='{
           "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
           "stageName": "Twistlock Scan",
-          "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}",
           "scanID": "001",
           "scannerName": "Twistlock",
           "projectName": "Test Project",
