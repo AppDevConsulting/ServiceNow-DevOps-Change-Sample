@@ -124,7 +124,7 @@ jobs:
           "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
           "stageName": "Twistlock Scan",
           "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}",
-          "scanID": "001",
+          "scanID": "Twistlock Scan",
           "scannerName": "Twistlock",
           "projectName": "Test Project",
           "lastScanned": "2024-06-12 14:55:36",
