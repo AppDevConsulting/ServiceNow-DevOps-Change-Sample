@@ -1,13 +1,14 @@
 # This workflow uses ServiceNow custom actions that are certified by ServiceNow.
 
-name: CI GitHub workflow
+name: CICD GitHub workflow
 
-on: workflow_dispatch
-  # push:
-  #   branches: [ "main" ]
-  # pull_request:
-  #   branches: [ "main" ]
-  #   types: [opened, synchronize, reopened]
+on: 
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
@@ -76,55 +77,142 @@ jobs:
           # List of Artifacts to be registered
           artifacts: '[
               {
-                  "name": "app-devops-ci.jar",
+                  "name": "app-devops-cicd.jar",
                   "version": "1.${{ github.run_number }}",
                   "semanticVersion": "1.${{ github.run_number }}.0",
                   "repositoryName": "${{ github.repository }}"
               }
           ]'
 
-  # sonarScan:
-  #   name: 'Sonar Scan'
-  #   needs: registerArtifact
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4.0.0
+  sonarScan:
+    name: 'Sonar Scan'
+    needs: registerArtifact
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.0.0
     
-  #   - name: ServiceNow DevOps Sonar Scan Results
-  #   # You may pin to the exact commit or the version.     
-  #     uses: ServiceNow/servicenow-devops-sonar@v2.0.0
-  #     with:
-  #         # ServiceNow Instance URL
-  #         instance-url: ${{ secrets.SN_INSTANCE_URL }}
-  #         # Devops Integration Token
-  #         devops-integration-token: ${{ secrets.SN_DEVOPS_TOKEN }}
-  #         # Orchestration Tool Id
-  #         tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
-  #         # Github Context
-  #         context-github: ${{ toJSON(github) }}
-  #         # Display Name of the Job
-  #         job-name: 'Sonar Scan'
-  #         # Sonar Host URL
-  #         sonar-host-url: ${{ secrets.SONAR_URL }}
-  #         # Sonar Project Key
-  #         sonar-project-key: ${{ secrets.SONAR_PROJECT_KEY }}
+    - name: ServiceNow DevOps Sonar Scan Results
+    # You may pin to the exact commit or the version.     
+      uses: ServiceNow/servicenow-devops-sonar@v2.0.0
+      with:
+          # ServiceNow Instance URL
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          # Devops Integration Token
+          devops-integration-token: ${{ secrets.SN_DEVOPS_TOKEN }}
+          # Orchestration Tool Id
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          # Github Context
+          context-github: ${{ toJSON(github) }}
+          # Display Name of the Job
+          job-name: 'Sonar Scan'
+          # Sonar Host URL
+          sonar-host-url: ${{ secrets.SONAR_URL }}
+          # Sonar Project Key
+          sonar-project-key: ${{ secrets.SONAR_PROJECT_KEY }}
 
-  # securityScan:
-  #   name: 'Security Scan'
-  #   needs: sonarScan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4.0.0
+  TwistlockScan:
+    name: 'Twistlock Scan'
+    needs: sonarScan
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.0.0
+    
+    - name: Process Twistlock Payload
+      run: |
+        echo 'Processing JSON payload...'
+        json_payload='{
+          "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
+          "stageName": "Twistlock",
+          "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}",
+          "scanID": "001",
+          "scannerName": "Twistlock",
+          "projectName": "Test Project",
+          "lastScanned": "2024-06-12 14:55:36",
+          "initiatedBy": "test@domain.com",
+          "softwareQualityDetail": [{
+            "category": "coverage",
+            "value": "80",
+            "categoryDetail": []
+          },
+          {"category": "bugs",
+            "value": "3",
+            "categoryDetail": []
+          },
+          {"category": "vulnerabilities",
+            "value": "10",
+            "categoryDetail": [{
+              "subcategory": "critical",
+              "value": "1"
+            }, {
+              "subcategory": "high",
+              "value": "3"
+            }, {
+              "subcategory": "medium",
+              "value": "2"
+            }, {
+              "subcategory": "low",
+              "value": "4"
+            }]
+          }]
+        }'
+        echo "$json_payload" > payload.json
 
-  #   - name: ServiceNow DevOps Security Results
-  #     uses: ServiceNow/servicenow-devops-security-result@v2.0.0
-  #     with:
-  #         # Devops Integration Token
-  #         devops-integration-token: ${{ secrets.SN_DEVOPS_TOKEN }}
-  #         instance-url: ${{ secrets.SN_INSTANCE_URL }}
-  #         tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
-  #         context-github: ${{ toJSON(github) }}
-  #         job-name: 'Security Scan'
-  #         security-result-attributes: '{ "scanner": "${{ secrets.SCANNER_NAME }}", "applicationName": "${{ secrets.VULNERABILITY_APPLICATION_NAME }}", "securityToolId": "<securityToolSysId>" }'
+        curl -X POST "${{ secrets.SN_INSTANCE_URL }}/api/sn_devops/v1/devops/tool/softwarequality?toolId=2d7b09ac93030210f5e77c018bba10b3&orchestrationToolId=${{ secrets.SN_ORCHESTRATION_TOOL_ID }}" \
+          --user "${{ secrets.SN_DEVOPS_USER }}:${{ secrets.SN_DEVOPS_PASSWORD }}" \
+          --header "Content-Type: application/json" \
+          --data "@payload.json"
+      env:
+        SN_INSTANCE_URL: ${{ secrets.SN_INSTANCE_URL }}
+        SN_DEVOPS_USER: ${{ secrets.SN_DEVOPS_USER }}
+        SN_DEVOPS_PASSWORD: ${{ secrets.SN_DEVOPS_PASSWORD }}
+        SN_ORCHESTRATION_TOOL_ID: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+
+  registerPackage:
+    name: 'Register Package'
+    needs: registerArtifact
+    runs-on: ubuntu-latest
+    steps:
+    - name: ServiceNow DevOps Register Package
+    # You may pin to the exact commit or the version.           
+      uses: ServiceNow/servicenow-devops-register-package@v2.0.0
+      with:
+          # Devops Integration Token
+          devops-integration-token: ${{ secrets.SN_DEVOPS_TOKEN }}
+          # ServiceNow Instance URL
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          # Orchestration Tool Id of the tool created in ServiceNow
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          # Github Context
+          context-github: ${{ toJSON(github) }}
+          # List of Artifacts in JSON format
+          artifacts: '[
+              {
+                  "name": "app-devops-cicd.jar",
+                  "version": "1.${{ github.run_number }}",
+                  "semanticVersion": "1.${{ github.run_number }}.0",
+                  "repositoryName": "${{ github.repository }}"
+              }
+          ]'
+          # Name of the Package that contains list of artifacts
+          package-name: 'app-devops-change-velocity-cicd.war'
+          # Display Name of Job
+          job-name: 'Register Package'
+          
+  change:
+    # jobs that must complete successfully before this job will run
+    needs: registerPackage
+    # type of machine to run the job on
+    runs-on: ubuntu-latest
+    name: 'ServiceNow DevOps Change'
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4.0.0
+        - name: ServiceNow Change
+          uses: ServiceNow/servicenow-devops-change@v4.0.0
+          with:
+            # Devops Integration Token
+            devops-integration-token: ${{ secrets.SN_DEVOPS_TOKEN }}
+            # ServiceNow Instance URL
+            instance-url: ${{ secrets.SN_INSTANCE
