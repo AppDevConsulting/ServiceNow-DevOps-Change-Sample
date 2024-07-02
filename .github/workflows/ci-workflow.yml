@@ -201,7 +201,7 @@ jobs:
 
   registerPackage:
     name: 'Register Package'
-    needs: TwistlockScan
+    needs: Twistlock
     runs-on: ubuntu-latest
     steps:
     - name: ServiceNow DevOps Register Package
