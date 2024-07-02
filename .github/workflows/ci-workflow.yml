@@ -109,8 +109,8 @@ jobs:
           # Sonar Project Key
           sonar-project-key: ${{ secrets.SONAR_PROJECT_KEY }}
 
-  TwistlockScan:
-    name: 'Twistlock Scan'
+  Twistlock:
+    name: 'Twistlock'
     needs: sonarScan
     runs-on: ubuntu-latest
     steps:
