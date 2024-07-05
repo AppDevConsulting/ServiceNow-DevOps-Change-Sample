@@ -125,6 +125,9 @@ jobs:
           "stageName": "Twistlock Scan",
           "_id": "5bd72249a0dd0e12f9b17b22",
           "scannerName": "Twistlock",
+          "projectName": "Test Project",
+          "lastScanned": "2024-06-12 14:55:36",
+          "initiatedBy": "test@domain.com",
           "hostname": "jacob-repro-2",
           "info": {
             "allCompliance": {},
