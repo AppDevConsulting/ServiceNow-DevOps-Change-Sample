@@ -124,6 +124,7 @@ jobs:
           "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
           "stageName": "Twistlock Scan",
           "_id": "5bd72249a0dd0e12f9b17b22",
+          "scannerName": "Twistlock",
           "hostname": "jacob-repro-2",
           "info": {
             "allCompliance": {},
