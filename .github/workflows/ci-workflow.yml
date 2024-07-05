@@ -111,7 +111,7 @@ jobs:
 
   TwistlockScan:
     name: 'Twistlock Scan'
-    needs: build
+    needs: sonarScan
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
