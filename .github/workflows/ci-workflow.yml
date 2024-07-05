@@ -121,6 +121,9 @@ jobs:
       run: |
         echo 'Processing JSON payload...'
         json_payload='{
+          "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow/ServiceNow DevOps Change",
+          "stageName": "Twistlock",
+          "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}"
           "scanID": "001",
           "scannerName": "Twistlock",
           "projectName": "Test Project",
@@ -207,9 +210,7 @@ jobs:
             }
           ],
           "scanTime": "2024-06-12 14:55:36",
-          "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow/ServiceNow DevOps Change",
-          "stageName": "Twistlock",
-          "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}"
+
         }'
         echo "$json_payload" > payload.json
         curl -X POST "${{ secrets.SN_INSTANCE_URL }}/api/sn_devops/v1/devops/tool/softwarequality?toolId=2d7b09ac93030210f5e77c018bba10b3&orchestrationToolId=${{ secrets.SN_ORCHESTRATION_TOOL_ID }}" \
