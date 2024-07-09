@@ -86,8 +86,8 @@ jobs:
           sonar-host-url: ${{ secrets.SONAR_URL }}
           sonar-project-key: ${{ secrets.SONAR_PROJECT_KEY }}
 
-  TwistlockScan:
-    name: 'Twistlock Scan'
+  Twistlock:
+    name: 'Twistlock'
     needs: sonarScan
     runs-on: ubuntu-latest
     steps:
@@ -99,8 +99,8 @@ jobs:
         echo 'Processing JSON payload...'
         cat <<EOF > src/prisma_payload_1.json
         {
-          "pipelineName": "Akayaofficial/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
-          "stageName": "Twistlock Scan",
+          "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
+          "stageName": "Twistlock",
           "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}",
           "otherPayloadData": $(cat src/prisma_payload_1.json)
         }
