@@ -24,8 +24,8 @@ jobs:
     - name: Build with Maven
       run: mvn clean compile
 
-  TwistlockScan:
-    name: 'Twistlock Scan'
+  Twistlock:
+    name: 'Twistlock'
     needs: build
     runs-on: ubuntu-latest
     steps:
