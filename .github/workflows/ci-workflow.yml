@@ -1,4 +1,4 @@
-name: CICD GitHub workflow
+name: CI GitHub workflow
 
 on:
   workflow_dispatch:
