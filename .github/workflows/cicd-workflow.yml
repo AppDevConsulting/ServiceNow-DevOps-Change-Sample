@@ -109,57 +109,29 @@ jobs:
           # Sonar Project Key
           sonar-project-key: ${{ secrets.SONAR_PROJECT_KEY }}
 
-  TwistlockScan:
-    name: 'Twistlock Scan'
+  Twistlock:
+    name: 'Twistlock'
     needs: sonarScan
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4.0.0
-    
+
     - name: Process Twistlock Payload
       run: |
         echo 'Processing JSON payload...'
-        json_payload='{
+        mkdir -p src
+        cat <<EOF > src/prisma_payload_1.json
+        {
           "pipelineName": "AppDevConsulting/ServiceNow-DevOps-Change-Sample/CICD GitHub workflow",
-          "stageName": "Twistlock Scan",
-          "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}",
-          "scanID": "Twistlock Scan",
-          "scannerName": "Twistlock",
-          "projectName": "Test Project",
-          "lastScanned": "2024-06-12 14:55:36",
-          "initiatedBy": "test@domain.com",
-          "softwareQualityDetail": [{
-            "category": "coverage",
-            "value": "80",
-            "categoryDetail": []
-          },
-          {"category": "bugs",
-            "value": "3",
-            "categoryDetail": []
-          },
-          {"category": "vulnerabilities",
-            "value": "10",
-            "categoryDetail": [{
-              "subcategory": "critical",
-              "value": "1"
-            }, {
-              "subcategory": "high",
-              "value": "3"
-            }, {
-              "subcategory": "medium",
-              "value": "2"
-            }, {
-              "subcategory": "low",
-              "value": "4"
-            }]
-          }]
-        }'
-        echo "$json_payload" > payload.json
-        curl -X POST "${{ secrets.SN_INSTANCE_URL }}/api/sn_devops/v1/devops/tool/softwarequality?toolId=2d7b09ac93030210f5e77c018bba10b3&orchestrationToolId=${{ secrets.SN_ORCHESTRATION_TOOL_ID }}" \
+          "stageName": "Twistlock",
+          "buildNumber": "${{ github.run_id }}/attempts/${{ github.run_attempt }}"
+        }
+        EOF
+        curl -X POST "${{ secrets.SN_INSTANCE_URL }}/api/sn_devops/v1/devops/tool/softwarequality?toolId=ab1b11b6474b0690797f466b416d43cc&orchestrationToolId=${{ secrets.SN_ORCHESTRATION_TOOL_ID }}" \
           --user "${{ secrets.SN_DEVOPS_USER }}:${{ secrets.SN_DEVOPS_PASSWORD }}" \
           --header "Content-Type: application/json" \
-          --data "@payload.json"
+          --data @src/prisma_payload_1.json
       env:
         SN_INSTANCE_URL: ${{ secrets.SN_INSTANCE_URL }}
         SN_DEVOPS_USER: ${{ secrets.SN_DEVOPS_USER }}
@@ -168,7 +140,7 @@ jobs:
 
   registerPackage:
     name: 'Register Package'
-    needs: TwistlockScan
+    needs: Twistlock
     runs-on: ubuntu-latest
     steps:
     - name: ServiceNow DevOps Register Package
